@@ -8,13 +8,14 @@ from PIL import Image
 class Osc:
     def __init__(self, freq, amp):
         self.freq = freq
-        self.amp = amp
+        self._amp = self.amp = amp
         self.phi = -1
 
     def step(self):
         self.phi += 1
+        self._amp = .99 * self._amp + .01 * self.amp
         w = 2 * math.pi * self.freq / 44100.0
-        return self.amp * math.sin(w * self.phi)
+        return self._amp * math.sin(w * self.phi)
 
 
 class Scanner:
