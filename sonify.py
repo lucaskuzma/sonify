@@ -44,6 +44,7 @@ r_channel = Channel([
     Scanner(.8, 670),
 ])
 
+
 channels = [l_channel, r_channel]
 loudest = 0  # for normalization
 
@@ -89,10 +90,11 @@ for file in files:
 
 # convert, normalize, and interleave channel buffers to byte array
 audio_buffer = bytearray()
-normfactor = .9 / loudest
+normfactor = .95 / loudest  # -0.22dB
+scale = 32767.0 * normfactor  # float to int
 for step in range(len(channels[0].buffer)):
     for channel in channels:
-        sample = int(normfactor * 32767.0 * channel.buffer[step])
+        sample = int(scale * channel.buffer[step])
         byted = sample.to_bytes(2, byteorder='little', signed=True)
         audio_buffer += byted
 
