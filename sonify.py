@@ -32,19 +32,19 @@ class Channel:
 
 
 l_channel = Channel([
-    Scanner(.15, 880),
-    Scanner(.30, 660),
-    Scanner(.40, 440),
-    Scanner(.45, 220),
-    Scanner(.50, 110),
+    Scanner(.15, 559),
+    Scanner(.30, 449),
+    Scanner(.40, 339),
+    Scanner(.45, 229),
+    Scanner(.50, 119),
 ])
 
 r_channel = Channel([
-    Scanner(.50, 110),
-    Scanner(.55, 450),
-    Scanner(.60, 230),
-    Scanner(.70, 670),
-    Scanner(.85, 890),
+    Scanner(.50, 110),  # A
+    Scanner(.55, 220),  # A
+    Scanner(.60, 330),  # E
+    Scanner(.70, 440),  # A
+    Scanner(.85, 550),  # C#
 ])
 
 
