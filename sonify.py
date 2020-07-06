@@ -101,7 +101,7 @@ for step in range(len(channels[0].buffer)):
 
 
 # write to wav file
-wav = wave.open('sonics.wav', 'w')
+wav = wave.open('sound.wav', 'w')
 wav.setparams((2, 2, 44100, 0, 'NONE', 'not compressed'))
 wav.writeframes(audio_buffer)
 wav.close()
