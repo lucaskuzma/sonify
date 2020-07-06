@@ -52,7 +52,8 @@ channels = [l_channel, r_channel]
 loudest = 0  # for normalization
 
 # path = Path("../temp/rnd_point_19c/out_a")
-path = Path("images")
+path = Path("../temp/rnd_point_16/out_c")
+# path = Path("images")
 files = sorted(path.glob('*.png'))
 
 for file in files:
@@ -84,20 +85,24 @@ for file in files:
     for step in range(1470):
         for channel in channels:
             sample = 0
+            # mix output from scanner oscillators
             for scanner in channel.scanners:
                 sample += scanner.osc.step()
-            if sample > loudest:
-                loudest = sample
+            # track level for normalization
+            if abs(sample) > loudest:
+                loudest = abs(sample)
             channel.buffer.append(sample)
 
 
 # convert, normalize, and interleave channel buffers to byte array
 audio_buffer = bytearray()
 normfactor = .95 / loudest  # -0.22dB
+print(f'loudest sample: {loudest}, normalizing by: {normfactor}')
 scale = 32767.0 * normfactor  # float to int
 for step in range(len(channels[0].buffer)):
     for channel in channels:
         sample = int(scale * channel.buffer[step])
+        # print(f'step {step} value: {channel.buffer[step]}, scaled: {sample}')
         byted = sample.to_bytes(2, byteorder='little', signed=True)
         audio_buffer += byted
 
