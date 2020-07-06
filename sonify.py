@@ -32,17 +32,19 @@ class Channel:
 
 
 l_channel = Channel([
-    Scanner(.2, 660),
-    Scanner(.3, 440),
-    Scanner(.4, 220),
-    Scanner(.5, 110),
+    Scanner(.15, 880),
+    Scanner(.30, 660),
+    Scanner(.40, 440),
+    Scanner(.45, 220),
+    Scanner(.50, 110),
 ])
 
 r_channel = Channel([
-    Scanner(.5, 110),
-    Scanner(.6, 450),
-    Scanner(.7, 230),
-    Scanner(.8, 670),
+    Scanner(.50, 110),
+    Scanner(.55, 450),
+    Scanner(.60, 230),
+    Scanner(.70, 670),
+    Scanner(.85, 890),
 ])
 
 
