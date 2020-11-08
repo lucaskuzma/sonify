@@ -1,4 +1,9 @@
 
+`sonify.py`
+
+Runs through a directory of PNG images and for every image generates 1/30 seconds of sound. Sound is determined by a set of Scanner objects, each of which is initialized with an x position, normalized 0..1, and a frequency. Each Scanner reads a column from the image, the total brightness of which, in the red channel, determines the amplitude of the Scanner's oscillator.
+
+
 generate audio:
 
 	python sonify.py 
