@@ -5,79 +5,40 @@ from pathlib import Path
 from PIL import Image
 
 
-class Osc:
-    def __init__(self, freq, amp):
-        self.freq = freq
-        self._amp = self.amp = amp
-        self.phi = -1
-
-    def step(self):
-        self.phi += 1
-        self._amp = 0.99 * self._amp + 0.01 * self.amp
-        w = 2 * math.pi * self.freq / 44100.0
-        return self._amp * math.sin(w * self.phi)
-
-
-class Scanner:
-    def __init__(self, pos, freq):
-        self.pos = pos
-        self.freq = freq
-        self.osc = Osc(freq, 0)
-
-
 class Channel:
-    def __init__(self, scanners):
-        self.scanners = scanners
+    def __init__(self):
         self.buffer = []
 
 
-l_channel = Channel(
-    [
-        Scanner(0.15, 559),
-        Scanner(0.30, 449),
-        Scanner(0.40, 339),
-        Scanner(0.45, 229),
-        Scanner(0.50, 119),
-    ]
-)
-
-r_channel = Channel(
-    [
-        Scanner(0.50, 110),  # A
-        Scanner(0.55, 220),  # A
-        Scanner(0.60, 330),  # E
-        Scanner(0.70, 440),  # A
-        Scanner(0.85, 550),  # C#
-    ]
-)
-
-
+l_channel = Channel()
+r_channel = Channel()
 channels = [l_channel, r_channel]
-loudest = 0  # for normalization
 
-path = Path("../dst_10")
+path = Path("../../Jujo/cloud_05")
 files = sorted(path.glob("*.png"))
-
+samples_per_frame = 44100 / 30
+scan_size = math.ceil(math.sqrt(samples_per_frame))
+print(scan_size)
 
 for file in files:
 
     print(file)
 
-    image = Image.open(file).resize((40, 40), resample=Image.BICUBIC)
+    image = Image.open(file).resize((scan_size, scan_size), resample=Image.BICUBIC)
     pixels = image.load()
     w, h = image.size
 
     print(pixels[w / 2, h / 2])
 
-    for i in range(40):
-        for j in range(40):
+    for i in range(scan_size):
+        for j in range(scan_size):
 
             x = i
             y = j
             sample = pixels[x, y][0] / 128  # 0..2
             sample = sample - 1  # -1..1
 
-            if i * j >= 44100 / 30:
+            if i * j >= samples_per_frame:
                 break
 
             l_channel.buffer.append(sample)
@@ -85,17 +46,14 @@ for file in files:
 
 # convert, normalize, and interleave channel buffers to byte array
 audio_buffer = bytearray()
-# normfactor = 0.95 / loudest  # -0.22dB
-# print(f"loudest sample: {loudest}, normalizing by: {normfactor}")
-normfactor = 0.95
-scale = 32767.0 * normfactor  # float to int
+norm_factor = 0.95  # -0.22dB
+scale = 32767.0 * norm_factor  # float to int
 
 for step in range(len(channels[0].buffer)):
     for channel in channels:
         sample = int(scale * channel.buffer[step])
-        # print(f'step {step} value: {channel.buffer[step]}, scaled: {sample}')
-        byted = sample.to_bytes(2, byteorder="little", signed=True)
-        audio_buffer += byted
+        bytes = sample.to_bytes(2, byteorder="little", signed=True)
+        audio_buffer += bytes
 
 # write to wav file
 wav = wave.open("sound.wav", "w")
