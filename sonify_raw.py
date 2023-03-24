@@ -4,6 +4,12 @@ from pathlib import Path
 
 from PIL import Image
 
+"""
+Sonify a directory of images.
+
+Scales the image to a "scan_size", and writes pixel intensities of the new image to the audio buffer. Output is not very interesting, and tuned to the pixel size, since this operation is cyclical.
+"""
+
 
 class Channel:
     def __init__(self):
@@ -21,7 +27,6 @@ scan_size = math.ceil(math.sqrt(samples_per_frame))
 print(scan_size)
 
 for file in files:
-
     print(file)
 
     image = Image.open(file).resize((scan_size, scan_size), resample=Image.BICUBIC)
@@ -32,7 +37,6 @@ for file in files:
 
     for i in range(scan_size):
         for j in range(scan_size):
-
             x = i
             y = j
             sample = pixels[x, y][0] / 128  # 0..2
