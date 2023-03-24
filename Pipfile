@@ -8,6 +8,7 @@ verify_ssl = true
 [packages]
 pillow = "*"
 click = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.8"
