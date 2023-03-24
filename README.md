@@ -17,3 +17,11 @@ add audio to video:
 `sonify_raw.py`
 
 Similar to the above, but more of a crude dump of image data to audio buffer.
+
+### Python Shenanigans
+
+You might want to use `pipenv`.
+
+    pipenv install
+    pipenv shell
+    python sonify.py
