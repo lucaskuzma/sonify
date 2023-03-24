@@ -21,19 +21,26 @@ r_channel = Channel()
 channels = [l_channel, r_channel]
 
 samples_per_frame = int(44100 / 30)
-scan_size = 32
-n_oscillators = scan_size * scan_size
-print(f"{n_oscillators} oscillators activated")
 
 
 @click.command()
 @click.argument("path", type=click.Path(exists=True), default="test")
-def main(path):
+@click.option(
+    "-s",
+    "--size",
+    "scan_size",
+    default=4,
+    help="Square root of the number of oscillators",
+)
+def main(path, scan_size):
     path = Path(path)
     files = sorted(path.glob("*.png"))
     phi = 0
     count = len(files) - 1
     print(f"{count} files to process")
+
+    n_oscillators = scan_size * scan_size
+    print(f"{n_oscillators} oscillators activated")
 
     with click.progressbar(range(count), label="Files", length=count) as bar:
         for frame in bar:

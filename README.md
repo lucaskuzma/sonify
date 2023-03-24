@@ -20,9 +20,10 @@ Similar to the above, but more of a crude dump of image data to audio buffer.
 
 `sonify_add.py`
 
-Additive synth, with $size^2$ oscillators, i.e. one for each pixel in a downsampled image. Pan is determined by `x` and pitch by `y`.
+Additive synth, with $size^2$ oscillators, i.e. one for each pixel in a downsampled image. Pan is determined by `x` and pitch by `y`. Set the `size` parameter with `-s`.
 
     python sonify.py ../some/path
+    python sonify_add.py -s 64 ../some/path && afplay sound.wav
 
 `make_test.py`
 
