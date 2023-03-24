@@ -20,11 +20,13 @@ l_channel = Channel()
 r_channel = Channel()
 channels = [l_channel, r_channel]
 
-path = Path("../../Jujo/cloud_05")
+# path = Path("../../Jujo/cloud_05")
+path = Path("../dst_11")
 files = sorted(path.glob("*.png"))
 samples_per_frame = int(44100 / 30)
-scan_size = 16
-print(f"{scan_size * scan_size} oscillators activated")
+scan_size = 8
+n_oscillators = scan_size * scan_size
+print(f"{n_oscillators} oscillators activated")
 phi = 0
 
 for frame in range(len(files) - 1):
@@ -42,26 +44,32 @@ for frame in range(len(files) - 1):
     w, h = image_1.size
 
     # iterate over samples in this frame
-    for sample in range(samples_per_frame):
+    for sample_index in range(samples_per_frame):
+        l_sample = r_sample = 0
         # iterate over image pixels
-        for i in range(scan_size):
-            for j in range(scan_size):
-                # in case we want to do any coordinate mapping
-                x = i
-                y = j
-
+        for x in range(scan_size):
+            for y in range(scan_size):
                 amp_1 = pixels_1[x, y][0] / 256  # 0..1
                 amp_2 = pixels_2[x, y][0] / 256  # 0..1
 
                 # linterp
-                amp = amp_1 + (amp_2 - amp_1) * (sample / samples_per_frame)
+                amp = amp_1 + (amp_2 - amp_1) * (sample_index / samples_per_frame)
 
-                freq = 20 + 20000 * (scan_size - y) / scan_size
+                # calculate sample contribution from this pixel
+                freq = (
+                    20 + 3500 * (scan_size - y) / scan_size
+                )  # frequency based on y coordinate, 3520 is 440 * 8
+                print(freq)
                 w = 2 * math.pi * freq / 44100.0
-                sample = amp * math.sin(w * phi)
+                sample = (
+                    amp * math.sin(w * phi) / n_oscillators
+                )  # scale sample by amplitude and n_oscillators
 
-                l_channel.buffer.append(sample * (1 - x / scan_size))
-                r_channel.buffer.append(sample * x / scan_size)
+                l_sample += sample * (1 - x / scan_size)
+                r_sample += sample * (x / scan_size)
+
+        l_channel.buffer.append(l_sample)
+        r_channel.buffer.append(r_sample)
         phi += 1
 
 # convert, normalize, and interleave channel buffers to byte array
