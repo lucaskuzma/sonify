@@ -21,10 +21,10 @@ r_channel = Channel()
 channels = [l_channel, r_channel]
 
 # path = Path("../../Jujo/cloud_05")
-path = Path("../dst_11")
+path = Path("test")
 files = sorted(path.glob("*.png"))
 samples_per_frame = int(44100 / 30)
-scan_size = 8
+scan_size = 16
 n_oscillators = scan_size * scan_size
 print(f"{n_oscillators} oscillators activated")
 phi = 0
