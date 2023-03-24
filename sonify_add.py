@@ -59,7 +59,6 @@ for frame in range(len(files) - 1):
                 freq = (
                     20 + 3500 * (scan_size - y) / scan_size
                 )  # frequency based on y coordinate, 3520 is 440 * 8
-                print(freq)
                 w = 2 * math.pi * freq / 44100.0
                 sample = (
                     amp * math.sin(w * phi) / n_oscillators
