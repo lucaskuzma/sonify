@@ -25,6 +25,12 @@ channels = [l_channel, r_channel]
 samples_per_frame = int(44100 / 30)
 
 
+# slow and not band-limited, but sounds cool in this situation
+def square(radians):
+    radians = radians % (2 * math.pi)
+    return 1 if radians < math.pi else 0
+
+
 @click.command()
 @click.argument("path", type=click.Path(exists=True), default="test")
 @click.option(
@@ -73,13 +79,14 @@ def main(path, scan_size):
                 amp = amp_1 + (amp_2 - amp_1) * (sample_index / samples_per_frame)
 
                 # calculate sample contribution from this pixel
-                freq = (
-                    20 + 3500 * (scan_size - y) / scan_size
-                )  # frequency based on y coordinate, 3520 is 440 * 8
+
+                # frequency based on y coordinate, 3520 is 440 * 8
+                freq = 20 + 3500 * (scan_size - y) / scan_size
                 w = 2 * math.pi * freq / 44100.0
-                sample = (
-                    amp * math.sin(w * phi) / n_oscillators
-                )  # scale sample by amplitude and n_oscillators
+
+                # scale sample by amplitude and n_oscillators
+                sample = amp * math.sin(w * phi) / n_oscillators
+                # sample = amp * square(w * phi) / n_oscillators
 
                 l_sample += sample * (1 - x / scan_size)
                 r_sample += sample * (x / scan_size)
