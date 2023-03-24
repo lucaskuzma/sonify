@@ -1,7 +1,7 @@
 import math
 import wave
 from pathlib import Path
-
+import click
 from PIL import Image
 
 """
@@ -20,70 +20,86 @@ l_channel = Channel()
 r_channel = Channel()
 channels = [l_channel, r_channel]
 
-# path = Path("../../Jujo/cloud_05")
-path = Path("test")
-files = sorted(path.glob("*.png"))
 samples_per_frame = int(44100 / 30)
-scan_size = 16
+scan_size = 32
 n_oscillators = scan_size * scan_size
 print(f"{n_oscillators} oscillators activated")
-phi = 0
 
-for frame in range(len(files) - 1):
-    print(f"frame {frame}")
-    # load current and next image
-    file_1 = files[frame]
-    file_2 = files[frame + 1]
 
-    image_1 = Image.open(file_1).resize((scan_size, scan_size), resample=Image.BICUBIC)
-    image_2 = Image.open(file_2).resize((scan_size, scan_size), resample=Image.BICUBIC)
+@click.command()
+@click.argument("path", type=click.Path(exists=True), default="test")
+def main(path):
+    path = Path(path)
+    files = sorted(path.glob("*.png"))
+    phi = 0
+    count = len(files) - 1
+    print(f"{count} files to process")
 
-    pixels_1 = image_1.load()
-    pixels_2 = image_2.load()
+    with click.progressbar(range(count), label="Files", length=count) as bar:
+        for frame in bar:
+            # load current and next image
+            file_1 = files[frame]
+            file_2 = files[frame + 1]
 
-    w, h = image_1.size
+            image_1 = Image.open(file_1).resize(
+                (scan_size, scan_size), resample=Image.BICUBIC
+            )
+            image_2 = Image.open(file_2).resize(
+                (scan_size, scan_size), resample=Image.BICUBIC
+            )
 
-    # iterate over samples in this frame
-    for sample_index in range(samples_per_frame):
-        l_sample = r_sample = 0
-        # iterate over image pixels
-        for x in range(scan_size):
-            for y in range(scan_size):
-                amp_1 = pixels_1[x, y][0] / 256  # 0..1
-                amp_2 = pixels_2[x, y][0] / 256  # 0..1
+            pixels_1 = image_1.load()
+            pixels_2 = image_2.load()
 
-                # linterp
-                amp = amp_1 + (amp_2 - amp_1) * (sample_index / samples_per_frame)
+            w, h = image_1.size
 
-                # calculate sample contribution from this pixel
-                freq = (
-                    20 + 3500 * (scan_size - y) / scan_size
-                )  # frequency based on y coordinate, 3520 is 440 * 8
-                w = 2 * math.pi * freq / 44100.0
-                sample = (
-                    amp * math.sin(w * phi) / n_oscillators
-                )  # scale sample by amplitude and n_oscillators
+            # iterate over samples in this frame
+            for sample_index in range(samples_per_frame):
+                l_sample = r_sample = 0
+                # iterate over image pixels
+                for x in range(scan_size):
+                    for y in range(scan_size):
+                        amp_1 = pixels_1[x, y][0] / 256  # 0..1
+                        amp_2 = pixels_2[x, y][0] / 256  # 0..1
 
-                l_sample += sample * (1 - x / scan_size)
-                r_sample += sample * (x / scan_size)
+                        # linterp
+                        amp = amp_1 + (amp_2 - amp_1) * (
+                            sample_index / samples_per_frame
+                        )
 
-        l_channel.buffer.append(l_sample)
-        r_channel.buffer.append(r_sample)
-        phi += 1
+                        # calculate sample contribution from this pixel
+                        freq = (
+                            20 + 3500 * (scan_size - y) / scan_size
+                        )  # frequency based on y coordinate, 3520 is 440 * 8
+                        w = 2 * math.pi * freq / 44100.0
+                        sample = (
+                            amp * math.sin(w * phi) / n_oscillators
+                        )  # scale sample by amplitude and n_oscillators
 
-# convert, normalize, and interleave channel buffers to byte array
-audio_buffer = bytearray()
-norm_factor = 0.95  # -0.22dB
-scale = 32767.0 * norm_factor  # float to int
+                        l_sample += sample * (1 - x / scan_size)
+                        r_sample += sample * (x / scan_size)
 
-for step in range(len(channels[0].buffer)):
-    for channel in channels:
-        sample = int(scale * channel.buffer[step])
-        bytes = sample.to_bytes(2, byteorder="little", signed=True)
-        audio_buffer += bytes
+                l_channel.buffer.append(l_sample)
+                r_channel.buffer.append(r_sample)
+                phi += 1
 
-# write to wav file
-wav = wave.open("sound.wav", "w")
-wav.setparams((2, 2, 44100, 0, "NONE", "not compressed"))
-wav.writeframes(audio_buffer)
-wav.close()
+    # convert, normalize, and interleave channel buffers to byte array
+    audio_buffer = bytearray()
+    norm_factor = 0.95  # -0.22dB
+    scale = 32767.0 * norm_factor  # float to int
+
+    for step in range(len(channels[0].buffer)):
+        for channel in channels:
+            sample = int(scale * channel.buffer[step])
+            bytes = sample.to_bytes(2, byteorder="little", signed=True)
+            audio_buffer += bytes
+
+    # write to wav file
+    wav = wave.open("sound.wav", "w")
+    wav.setparams((2, 2, 44100, 0, "NONE", "not compressed"))
+    wav.writeframes(audio_buffer)
+    wav.close()
+
+
+if __name__ == "__main__":
+    main()
