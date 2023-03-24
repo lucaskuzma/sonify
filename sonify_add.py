@@ -50,6 +50,13 @@ def main(path, scan_size):
     n_oscillators = scan_size * scan_size
     print(f"{n_oscillators} oscillators activated")
 
+    freqs = []
+    for y in range(scan_size):
+        # frequency based on y coordinate, 3520 is 440 * 8
+        freq = 20 + 3500 * (scan_size - y) / scan_size
+        freqs.append(freq)
+    print(f"frequencies: {freqs}")
+
     for frame in trange(count):
         # load current and next image
         file_1 = files[frame]
@@ -80,8 +87,7 @@ def main(path, scan_size):
 
                 # calculate sample contribution from this pixel
 
-                # frequency based on y coordinate, 3520 is 440 * 8
-                freq = 20 + 3500 * (scan_size - y) / scan_size
+                freq = freqs[y]
                 w = 2 * math.pi * freq / 44100.0
 
                 # scale sample by amplitude and n_oscillators
